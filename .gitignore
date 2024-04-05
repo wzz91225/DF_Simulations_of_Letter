@@ -1,0 +1,4 @@
+# Untracked files:
+/gnuradio/**/*.py
+**/__pycache__/
+*.asv
