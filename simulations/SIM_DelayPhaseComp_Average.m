@@ -2,13 +2,13 @@
 clear;
 % close all;
 
-% 初始化并行池（如果尚未启动）
+% Initialize parallel pool (if not already started)
 if isempty(gcp('nocreate'))
-    % 使用默认设置启动并行池
+    % Starting parallel pooling using default settings
     parpool;
 end
 
-% 仿真计时开始
+% Simulation timing starts
 tic;
 
 average_num = 1;
@@ -20,7 +20,7 @@ baseline_coefficient = 2;
 frequency = 640e3;
 samp_rate = 6.4e6;
 
-% 信号源与接收机比相时相对角度alpha 范围[0, 180)
+% The relative angle alpha range when comparing the signal source and receiver is [0, 180)
 relative_DoA = (0:1:179);
 doa_angle = zeros(1, length(relative_DoA));
 
@@ -37,7 +37,7 @@ parfor i = 1 : length(relative_DoA)
 end
 
 
-% 仿真计时结束
+% Simulation timing ended
 sim_timing = toc;
 fprintf('仿真历时 %.6f 秒。\n', sim_timing);
 

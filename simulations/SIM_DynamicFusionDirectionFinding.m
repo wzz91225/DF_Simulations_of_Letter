@@ -2,178 +2,175 @@
 clear;
 close all;
 
-% 仿真计时开始
+% Simulation timing starts
 tic;
 
 
 
-% ##########################仿真过程控制##########################
-% 是否输出结果
+% ##########################Simulation process control##########################
+% Whether to output results
 is_fprintf = 1;
-% 是否绘图
+% Whether to draw
 is_figure = 1;
 
-% 是否使用滤波器
+% whether to use a filter
 is_filter = 0;
-% 是否使用相干积累器
+% Whether to use coherent accumulators
 is_coherent_integration = 1;
 
 
 
-% ##########################主要仿真参数定义##########################
-% 光速 单位m/s
+% ##########################Definition of Main Simulation Parameters##########################
+% Speed of light (m/s)
 c = 299792458;
 
-% 信号源频率 单位Hz
+% Signal source frequency (Hz)
 frequency = 3.2e4;
-% 接收机信号采样率 单位Hz
+% Receiver signal sampling rate (Hz)
 samp_rate = 6.4e6;
 
-% 信号源与接收机比相时相对角度alpha 范围[0, 180)
+% The relative angle alpha range when comparing the signal source and receiver is [0, 180)
 alpha_angle = 34;
-% 信号源与接收机比相时相对距离d_r 单位m
-d_relative = 20 * c / frequency;    % 20倍正弦信号波长
-% 接收机水平移动速度 单位m/s
+% Relative distance between signal source and receiver during phase comparison d_r (m)
+d_relative = 20 * c / frequency;    % 20 times sine signal wavelength
+% Receiver horizontal movement speed (m/s)
 v_rx = 10e3;
 
-% 高斯噪声参数定义
-snr_value = 0;     % 信噪比SNR(dB)
+% SNR (dB)
+snr_value = 0;
 
-% 接收机比相相干积累序列数
+% Receiver phase comparison coherent integration sequence number
 coherent_integration_number = 10;
-% 接收机比相相干积累正弦信号序列周期数
+% The receiver integrates the number of cycles in each sequence containing a sinusoidal signal sequence compared to phase coherence
 coherent_integration_cycles = 10;
 
-% % 滤波器阶数
-% filter_n = 200;
 
 
-
-% ##########################信号源&接收机参数计算##########################
-% 接收机比相单次采样正弦信号总周期数
+% ##########################Signal Source & Receiver Parameter Calculation##########################
+% Total cycle number of single sampling sinusoidal signal in receiver phase comparison
 single_sampling_cycles = coherent_integration_number * ...
     coherent_integration_cycles;
-% 接收机比相单次采样时长 单位s
+% receiver phase single-sampling duration (s)
 single_sampling_duration = single_sampling_cycles / frequency;
-% 接收机比相单次采样经过的距离 单位s
+% Receiver phase comparison distance traveled by a single sample (s)
 single_sampling_distance = single_sampling_duration / v_rx;
 
-% 接收机比相间隔距离 单位m
-sampling_interval = c / frequency / 2;  % 半波长
-% 接收机比相间隔时间 单位s
+% Receiver phase comparison interval distance (m)
+sampling_interval = c / frequency / 2;  % Half wavelength
+% Receiver phase comparison interval time (s)
 delta_t = sampling_interval / v_rx;
 
-% 信号采样总时长 单位s
+% Total signal sampling time (s)
 sampling_duration = delta_t + single_sampling_duration;
-% 信号采样总时长对应的距离 单位m
+% The distance corresponding to the total duration of signal sampling (m)
 sampling_distance = sampling_duration / v_rx;
 
-% 相对角度alpha相关参数
-alpha_radian = deg2rad(alpha_angle);    % 弧度
+% Relative angle alpha related parameters
+alpha_radian = deg2rad(alpha_angle);    % radian
 alpha_sin = sin(alpha_radian);
 alpha_cos = cos(alpha_radian);
 
-% 信号源投影在接收机移动方向上的距离d_v  单位m
+% The distance d_v of the signal source projection in the direction of receiver movement  (m)
 d_vertical = d_relative * alpha_sin;
-% 接收机比相首次采样完成时与信号源的相对距离d'_r 单位m
+% Relative distance d'_r from signal source when receiver phase comparison first sampling is completed (m)
 d_prime_relative = sqrt(d_vertical^2 + ...
     (sampling_interval + d_relative * alpha_cos)^2);
 
-% 接收机比相最终采样开始时与信号源的相对距离d_start 单位m
+% Receiver phase comparison relative distance from signal source d_start at the start of final sampling (m)
 d_start = sqrt(d_vertical^2 + ...
     (sampling_interval + d_relative * alpha_cos)^2);
-% 接收机比相首次采样开始时与信号源的相对距离d'_start 单位m
+% Receiver phase comparison relative distance d'_start from signal source at the start of first sampling (m)
 d_prime_start = sqrt(d_vertical^2 + ...
     (sampling_distance + d_relative * alpha_cos)^2);
 
-% 接收机初始空间坐标
+% Receiver initial spatial coordinates
 [x_rx, y_rx] = deal(0, 0);
-% 信号源坐标
+% Signal source coordinates
 [x_s, y_s] = deal(d_relative * alpha_cos + sampling_distance, ...
     d_vertical);
 
 
 
-% ##########################仿真时域参数计算##########################
-% 仿真时长 单位s
+% ##########################Simulation Time Domain Parameter Calculation##########################
+% Simulation duration (s)
 sim_duration = sampling_duration;
-% 信号源传播至接收机首次采样开始时间点
+% The signal source propagates to the starting time of the first sampling at the receiver
 t_prime_start = d_prime_start / c;
-% 仿真时间间隔 单位s
+% Simulation time interval (s)
 sim_time_interval = 1 / samp_rate;
-% 仿真时间向量 单位s
+% Simulation time vector (s)
 time_vector = t_prime_start : sim_time_interval : ...
     t_prime_start+sim_duration;
 
-% 比相单次采样点数
+% Phase comparison single sampling points
 single_sampling_points = round( ...
     single_sampling_duration / sim_time_interval);
-% 比相间隔点数
+% points of comparison intervals
 interval_points =  round(delta_t / sim_time_interval);
-% 相干积累信号采样点数
+% Coherent integration signal sampling points
 coherent_integration_points = single_sampling_points / ...
     coherent_integration_number;
 
 
 
-% ##########################空间网格参数计算##########################
-% 最大采样间隔距离 单位m
+% ##########################Calculation of spatial grid parameters##########################
+% Maximum sampling interval distance (m)
 d_max = v_rx / samp_rate;
-% 仿真网格长度 单位m
+% Simulation grid length (m)
 grid_width = sampling_distance;
-% 仿真网格点数
+% Number of simulation grid points
 num_points_width = ceil(grid_width / d_max);
 
 
 
-% ##########################实时接收信号仿真##########################
-% 初始化接收到的信号数组
+% ##########################Real time signal reception simulation##########################
+% Initialize the received signal array
 sig_rx = zeros(1, length(time_vector));
 sig_rx_ch1 = zeros(1, length(time_vector));
 sig_rx_ch2 = zeros(1, length(time_vector));
 
-% 模拟接收机在每个时间点接收到的信号
+% Simulate the signal received by the receiver at each time point
 for i = 1 : length(time_vector)
-    % 计算接收机当前位置（从t=0开始沿X轴移动）
+    % Calculate the current position of the receiver (moving along the X-axis starting from t=0)
     x_rx = x_rx + v_rx * sim_time_interval;
     y_rx = 0;
     
-    % 计算接收机和信号源的相对距离
+    % Calculate the relative distance between the receiver and the signal source
     distance = sqrt((x_rx - x_s)^2 + (y_s - y_rx)^2);
-    % 计算信号传播时间
+    % Calculate signal propagation time
     propagation_time = distance / c ;
     
-    % 接收信号
+    % Receiving signals
     sig_rx(i) = sin(2 * pi * frequency * ...
         (time_vector(i) - propagation_time));
     
-    % 双通道正交天线接收信号
+    % Dual channel orthogonal antenna receiving signal
     sig_rx_ch1(i) = sig_rx(i) * abs(alpha_cos);
     sig_rx_ch2(i) = sig_rx(i) * alpha_sin;
 end
 
 
 
-% ##########################高斯加噪##########################
-% 添加噪声到信号
+% ##########################Gaussian noise addition##########################
+% Add noise to signal
 sig_rx_ch1_noisy = FUNC_AddGaussianNoise(sig_rx_ch1, snr_value);
 sig_rx_ch2_noisy = FUNC_AddGaussianNoise(sig_rx_ch2, snr_value);
 
 
 
-% ##########################测向信号截取##########################
-% 信号A和B分别对应的时间向量
+% ##########################Direction finding signal interception##########################
+% The time vectors corresponding to signals A and B respectively
 tv_sigA = time_vector(1 : single_sampling_points);
 tv_sigB = time_vector((1 + interval_points) : ...
     (interval_points + single_sampling_points));
 
-% 信号截取索引
+% Signal interception index
 idx_A_head = 1;
 idx_A_tail = single_sampling_points;
 idx_B_head = 1 + interval_points;
 idx_B_tail = interval_points + single_sampling_points;
 
-% 截取信号
+% Signal interception
 sigA_ch1 = sig_rx_ch1_noisy(idx_A_head : idx_A_tail);
 sigA_ch2 = sig_rx_ch2_noisy(idx_A_head : idx_A_tail);
 
@@ -182,18 +179,18 @@ sigB_ch2 = sig_rx_ch2_noisy(idx_B_head : idx_B_tail);
 
 
 
-% ##########################频率检测##########################
-% 双通道信号相加
+% ##########################Frequency detection##########################
+% Dual channel signal addition
 sigA_sum = sigA_ch1 + sigA_ch2;
 sigB_sum = sigB_ch1 + sigB_ch2;
 
-% 计算信号功率谱及其对应频率向量
+% Calculate the signal power spectrum and its corresponding frequency vector
 [fv_sigA, pspectrum_sigA] = FUNC_TransForm2PowerSpectrum( ...
     sigA_sum, samp_rate);
 [fv_sigB, pspectrum_sigB] = FUNC_TransForm2PowerSpectrum( ...
     sigB_sum, samp_rate);
 
-% 查找功率谱峰及其对应频点
+% Search for power spectrum peaks and their corresponding frequency points
 [freq_sigA, ppower_sigA] = FUNC_FindMaxPeak(fv_sigA, pspectrum_sigA);
 [freq_sigB, ppower_sigB] = FUNC_FindMaxPeak(fv_sigB, pspectrum_sigB);
 if isnan(freq_sigA)
@@ -207,9 +204,9 @@ end
 
 
 
-% ##########################带通滤波##########################
+% ##########################Bandpass filtering##########################
 if is_filter
-    % 滤波
+    % filtering
     [sigA_ch1_filtered, filter_b] = FUNC_BandpassFilter( ...
         sigA_ch1, frequency, samp_rate);
     [sigA_ch2_filtered, ~] = FUNC_BandpassFilter( ...
@@ -228,13 +225,13 @@ end
 
 
 
-% ##########################相干积累##########################
+% ##########################Coherent integration##########################
 if is_coherent_integration
-    % 相干积累信号对应的时间向量
+    % The time vector corresponding to the coherent integration signal
     tv_sigA_integration = tv_sigA(end-coherent_integration_points+1 : end);
     tv_sigB_integration = tv_sigB(end-coherent_integration_points+1 : end);
     
-    % 相干积累
+    % Coherent integration
     sigA_ch1_integration = FUNC_SignalCoherentIntegration( ...
         sigA_ch1_filtered, coherent_integration_points, coherent_integration_number);
     
@@ -257,93 +254,93 @@ else
 end
 
 
-% ##########################测向算法##########################
-% 时延比相测向算法
+% ##########################Direction finding algorithm##########################
+% Dynamic phase comparison direction finding algorithm
 sigA_integration_sum = sigA_ch1_integration + sigA_ch2_integration;
 sigB_integration_sum = sigB_ch1_integration + sigB_ch2_integration;
 [~, doa_phase_angle] = FUNC_DF2D_SignalDelayPhaseComparing( ...
     sigB_integration_sum, sigA_integration_sum, frequency, ...
     delta_t, sampling_interval, c);
 
-% 比幅测向算法
+% Amplitude comparison direction finding algorithm
 [~, doa_amplitude_angle] = FUNC_DF2D_AmplitudeComparing( ...
     sigB_ch1_integration, sigB_ch2_integration, samp_rate);
 
-% 融合测向
+% Fusion direction finding
 doa_fusion_angle = FUNC_DF2D_DirectionFindingFusionModel( ...
     doa_amplitude_angle, doa_phase_angle);
 
 
-% ##########################输出结果##########################
+% ##########################Output results##########################
 if is_fprintf
-    fprintf('频率检测A = %.2fHz\n', freq_sigA);
-    fprintf('频率检测B = %.2fHz\n', freq_sigB);
-    fprintf('实际角度[0, 180) = %.2f°\n', alpha_angle);
-    fprintf('比幅算法角度[0, 90] = %.2f°\n', doa_amplitude_angle);
-    fprintf('比相算法角度[0, 180) = %.2f°\n', doa_phase_angle);
-    fprintf('融合算法角度[0, 180) = %.2f°\n', doa_fusion_angle);
+    fprintf('Frequency detection A = %.2fHz\n', freq_sigA);
+    fprintf('Frequency detection B = %.2fHz\n', freq_sigB);
+    fprintf('Actual angle [0, 180) = %.2f°\n', alpha_angle);
+    fprintf('Angle of amplitude comparison algorithm [0, 90] = %.2f°\n', doa_amplitude_angle);
+    fprintf('Angle of dynamic phase comparison algorithm [0, 180) = %.2f°\n', doa_phase_angle);
+    fprintf('Angle of dynamic fusion method [0, 180) = %.2f°\n', doa_fusion_angle);
 end
 
 
 
-% ##########################绘图##########################
+% ##########################drawing##########################
 if is_figure
     % close all;
-    % 信号绘图统一点数
+    % Signal drawing unified number of points
     plot_points = coherent_integration_points;
 
 
-    % 原始信号和加噪信号
+    % Original signal and noisy signal
     figure;
 
     subplot(2, 1, 1);
     plot(time_vector(1:plot_points), sig_rx_ch1(1:plot_points), ...
-        'DisplayName', 'X轴通道1');
+        'DisplayName', 'X-axis channel 1');
     hold on;
     plot(time_vector(1:plot_points), sig_rx_ch2(1:plot_points), ...
-        'DisplayName', 'Y轴通道2');
+        'DisplayName', 'Y-axis channel 2');
     plot(time_vector(1:plot_points), sig_rx(1:plot_points), ...
-        'DisplayName', '原始信号');
+        'DisplayName', 'original signal');
     hold off;
     legend('show');
-    xlabel('时间 (s)');
-    ylabel('幅值');
-    title('原始接收信号');
+    xlabel('time (s)');
+    ylabel('amplitude');
+    title('original signal');
     xlim([time_vector(1) time_vector(plot_points)]);
     ylim([-2 2]);
     grid on;
 
     subplot(2, 1, 2);
     plot(time_vector(1:plot_points), sig_rx_ch1_noisy(1:plot_points), ...
-        'DisplayName', 'X轴通道1');
+        'DisplayName', 'X-axis channel 1');
     hold on;
     plot(time_vector(1:plot_points), sig_rx_ch2_noisy(1:plot_points), ...
-        'DisplayName', 'Y轴通道2');
+        'DisplayName', 'Y-axis channel 2');
     hold off;
     legend('show');
-    xlabel('时间 (s)');
-    ylabel('幅值');
-    title(['双通道天线高斯加噪信号 (SNR = ' num2str(snr_value) ' dB) ']);
+    xlabel('time (s)');
+    ylabel('amplitude');
+    title(['Gaussian noise signal from dual channel antenna (SNR = ' num2str(snr_value) ' dB) ']);
     xlim([time_vector(1) time_vector(plot_points)]);
     ymax = ceil(max(max(abs(sig_rx_ch1_noisy)), max(abs(sig_rx_ch2_noisy))));
     ylim([-ymax ymax]);
     grid on;
 
 
-    % 双通道截取信号A和B
+    % Dual channel interception signals A and B
     figure;
 
     subplot(2, 1, 1);
     plot(tv_sigA(1:plot_points), sigA_ch1(1:plot_points), ...
-        'DisplayName', 'X轴通道1');
+        'DisplayName', 'X-axis channel 1');
     hold on;
     plot(tv_sigA(1:plot_points), sigA_ch2(1:plot_points), ...
-        'DisplayName', 'Y轴通道2');
+        'DisplayName', 'Y-axis channel 2');
     hold off;
     legend('show');
-    xlabel('时间 (s)');
-    ylabel('幅值');
-    title('双通道天线截取接收信号A');
+    xlabel('time (s)');
+    ylabel('amplitude');
+    title('Dual channel antenna intercepts received signal A');
     xlim([tv_sigA(1) tv_sigA(plot_points)]);
     ymax = ceil(max(max(abs(sigA_ch1)), max(abs(sigA_ch2))));
     ylim([-ymax ymax]);
@@ -351,41 +348,41 @@ if is_figure
 
     subplot(2, 1, 2);
     plot(tv_sigB(1:plot_points), sigB_ch1(1:plot_points), ...
-        'DisplayName', 'X轴通道1');
+        'DisplayName', 'X-axis channel 1');
     hold on;
     plot(tv_sigB(1:plot_points), sigB_ch2(1:plot_points), ...
-        'DisplayName', 'Y轴通道2');
+        'DisplayName', 'Y-axis channel 2');
     hold off;
     legend('show');
-    xlabel('时间 (s)');
-    ylabel('幅值');
-    title('双通道天线截取接收信号B');
+    xlabel('time (s)');
+    ylabel('amplitude');
+    title('Dual channel antenna intercepts received signal B');
     xlim([tv_sigB(1) tv_sigB(plot_points)]);
     ymax = ceil(max(max(abs(sigB_ch1)), max(abs(sigB_ch2))));
     ylim([-ymax ymax]);
     grid on;
 
     
-    % 双通道截取信号A和B频谱
+    % Dual channel interception of signal A and B spectrum
     figure;
 
     subplot(2, 1, 1);
     plot(fv_sigA, pspectrum_sigA);
-    xlabel('频率 (Hz)');
-    ylabel('幅值');
-    title('双通道天线截取接收信号A频谱');
+    xlabel('frequency (Hz)');
+    ylabel('amplitude');
+    title('Dual channel antenna intercepts the received signal A spectrum');
     grid on;
 
     subplot(2, 1, 2);
     plot(fv_sigB, pspectrum_sigB);
-    xlabel('频率 (Hz)');
-    ylabel('幅值');
-    title('双通道天线截取接收信号B频谱');
+    xlabel('frequency (Hz)');
+    ylabel('amplitude');
+    title('Dual channel antenna intercepts the received signal B spectrum');
     grid on;
 
     
     if is_filter
-        % 滤波器频率响应和相位相应
+        % Filter frequency response and phase response
         figure;
         freqz(filter_b, 1, 1024, samp_rate);
     
@@ -395,30 +392,30 @@ if is_figure
     
         subplot(2, 1, 1);
         plot(tv_sigA(1:plot_points), sigA_ch1_filtered(1:plot_points), ...
-            'DisplayName', 'X轴通道1');
+            'DisplayName', 'X-axis channel 1');
         hold on;
         plot(tv_sigA(1:plot_points), sigA_ch2_filtered(1:plot_points), ...
-            'DisplayName', 'Y轴通道2');
+            'DisplayName', 'Y-axis channel 2');
         hold off;
         legend('show');
-        xlabel('时间 (s)');
-        ylabel('幅值');
-        title('带通滤波双通道信号A');
+        xlabel('time (s)');
+        ylabel('amplitude');
+        title('Bandpass filtered dual channel signal A');
         xlim([tv_sigA(1) tv_sigA(plot_points)]);
         ylim([-2 2]);
         grid on;
     
         subplot(2, 1, 2);
         plot(tv_sigB(1:plot_points), sigB_ch1_filtered(1:plot_points), ...
-            'DisplayName', 'X轴通道1');
+            'DisplayName', 'X-axis channel 1');
         hold on;
         plot(tv_sigB(1:plot_points), sigB_ch2_filtered(1:plot_points), ...
-            'DisplayName', 'Y轴通道2');
+            'DisplayName', 'Y-axis channel 2');
         hold off;
         legend('show');
-        xlabel('时间 (s)');
-        ylabel('幅值');
-        title('带通滤波双通道信号B');
+        xlabel('time (s)');
+        ylabel('amplitude');
+        title('Bandpass filtered dual channel signal B');
         xlim([tv_sigB(1) tv_sigB(plot_points)]);
         ylim([-2 2]);
         grid on;
@@ -426,40 +423,40 @@ if is_figure
 
 
     if is_coherent_integration
-        % 相干积累信号A和B
+        % Coherent integration signals A and B
         figure;
     
         subplot(2, 1, 1);
         plot(tv_sigA_integration, sigA_ch1_integration, ...
-            'DisplayName', 'X轴通道1');
+            'DisplayName', 'X-axis channel 1');
         hold on;
         plot(tv_sigA_integration, sigA_ch2_integration, ...
-            'DisplayName', 'Y轴通道2');
+            'DisplayName', 'Y-axis channel 2');
         hold off;
         legend('show');
-        xlabel('时间 (s)');
-        ylabel('幅值');
-        title('相干积累双通道信号A');
+        xlabel('time (s)');
+        ylabel('amplitude');
+        title('Coherent integration dual channel signal A');
         xlim([tv_sigA_integration(1) tv_sigA_integration(end)]);
         ylim([-2 2]);
         grid on;
     
         subplot(2, 1, 2);
         plot(tv_sigB_integration, sigB_ch1_integration, ...
-            'DisplayName', 'X轴通道1');
+            'DisplayName', 'X-axis channel 1');
         hold on;
         plot(tv_sigB_integration, sigB_ch2_integration, ...
-            'DisplayName', 'Y轴通道2');
+            'DisplayName', 'Y-axis channel 2');
         hold off;
         legend('show');
-        xlabel('时间 (s)');
-        ylabel('幅值');
-        title('相干积累双通道信号B');
+        xlabel('time (s)');
+        ylabel('amplitude');
+        title('Coherent integration dual channel signal B');
         xlim([tv_sigB_integration(1) tv_sigB_integration(end)]);
         ylim([-2 2]);
         grid on;
     end
 end
 
-% 仿真计时结束
+% Simulation timing ended
 toc;
