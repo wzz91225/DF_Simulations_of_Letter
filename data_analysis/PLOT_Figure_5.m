@@ -12,7 +12,7 @@ is_plot_angle_error = 0;
 
 % ##########################读取数据文件##########################
 % 指定.mat文件的路径
-matFilePath = 'matlab/simulation_results/SIMDATA-240301_164630-DynamicPhaseComparingDF_Ave_SNR_180x1x1000x2e2_CI1x1_10dB.mat';
+matFilePath = 'simulation_results/SIMDATA-240301_164630-DynamicPhaseComparingDF_Ave_SNR_180x1x1000x2e2_CI1x1_10dB.mat';
 
 % 从.mat文件中加载数据
 load(matFilePath);

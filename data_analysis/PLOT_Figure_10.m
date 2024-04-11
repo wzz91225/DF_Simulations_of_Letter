@@ -19,7 +19,7 @@ is_amplitude_errorlessthan90 = 1;
 
 %% ##########################读取数据文件##########################
 % 指定.mat文件的路径
-matFilePath = 'matlab/simulation_results/SIMDATA-240302_174814-DFVS_AmplituC_DynamicPhaseC_Ave_180x3x1000x2e2_CI1x10.mat';
+matFilePath = 'simulation_results/SIMDATA-240302_174814-DFVS_AmplituC_DynamicPhaseC_Ave_180x3x1000x2e2_CI1x10.mat';
 
 % 从.mat文件中加载数据
 load(matFilePath);

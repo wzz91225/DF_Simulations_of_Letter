@@ -12,7 +12,7 @@ is_plot_angle_error = 1;
 
 % ##########################读取数据文件##########################
 % 指定.mat文件的路径
-matFilePath = 'matlab/simulation_results/SIMDATA-240301_205001-DynamicPhaseComparingDF_Ave_CIC_180x9x1000x2e2_-15dB.mat';
+matFilePath = 'simulation_results/SIMDATA-240301_205001-DynamicPhaseComparingDF_Ave_CIC_180x9x1000x2e2_-15dB.mat';
 
 % % 弹出文件选择对话框让用户选择.mat文件
 % [fileName, filePath] = uigetfile('matlab/simulation_results/*.mat', ...

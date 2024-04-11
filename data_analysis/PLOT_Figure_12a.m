@@ -19,7 +19,7 @@ is_amplitude_errorlessthan90 = 1;
 
 %% ##########################读取数据文件##########################
 % 指定.mat文件的路径
-matFilePath = 'matlab/simulation_results/SIMDATA-240227_081730-DynamicFusionDF_Ave_SR_180x6x1000_-15dB.mat';
+matFilePath = 'simulation_results/SIMDATA-240302_181421-DynamicFusionDF_Ave_SNR_180x7x1000x2e2_merged.mat';
 
 % 从.mat文件中加载数据
 load(matFilePath);
@@ -97,7 +97,7 @@ if is_plot_angle_error
     linelist = ["-", "--", "-.", ":"];
 
     % 遍历第二维（如SNR或CIN或SR值）
-    for var_index = 2:1:5
+    for var_index = 1:2:7
 
         % 计算动态融合测向误差的平均值
         meanErrorFusion = mean(abs(doa_fusion_angle(:, var_index, :) - ...
@@ -106,8 +106,8 @@ if is_plot_angle_error
         if is_plot_fusion
             % 绘制动态融合测向误差曲线
             plot(alpha_angle, meanErrorFusion, ...
-                linelist((var_index-2)/1+1), ...
-                'Color', colors((var_index-2)/1+1, :), ...
+                linelist((var_index-1)/2+1), ...
+                'Color', colors((var_index-1)/2+1, :), ...
                 'LineWidth', 1, ...
                 'DisplayName', sprintf(var_displayname, var_list(var_index)));
                 % 'DisplayName', ['动态融合 ' sprintf(var_displayname, var_list(var_index))]);
@@ -168,7 +168,7 @@ if is_plot_angle_error
     xlabel('Expected (°)');
     ylabel('Average Absolute Error (°)');
     xlim([alpha_angle(1) alpha_angle(end)]);
-    ylim([0 3]);
+    ylim([0 5]);
     % legend('show');
     grid on;
     
