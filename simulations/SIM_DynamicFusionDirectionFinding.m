@@ -305,7 +305,7 @@ if is_figure
     legend('show');
     xlabel('time (s)');
     ylabel('amplitude');
-    title('original signal');
+    title('Time domain signal');
     xlim([time_vector(1) time_vector(plot_points)]);
     ylim([-2 2]);
     grid on;
@@ -387,7 +387,7 @@ if is_figure
         freqz(filter_b, 1, 1024, samp_rate);
     
     
-        % 带通滤波信号A和B
+        % Bandpass filtered signals A and B
         figure;
     
         subplot(2, 1, 1);

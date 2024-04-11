@@ -24,9 +24,9 @@ d_relative = 20 * c / frequency;    % 20 times sine signal wavelength
 v_rx = 10e3;
 
 % Receiver phase comparison coherent accumulation sequence number
-coherent_integration_number = 1;
+coherent_integration_number = 10;
 % The receiver accumulates the number of cycles in each sequence containing a sinusoidal signal sequence compared to phase coherence
-coherent_integration_cycles = 100;
+coherent_integration_cycles = 10;
 
 % SNR (dB)
 snr_value = -15;

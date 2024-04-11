@@ -39,7 +39,7 @@ end
 
 % Simulation timing ended
 sim_timing = toc;
-fprintf('仿真历时 %.6f 秒。\n', sim_timing);
+fprintf('Simulation duration %.6f s.\n', sim_timing);
 
 
 figure;
